@@ -1,0 +1,275 @@
+###Fig.1 and S3###
+otu=read.csv("OTUtable.csv", header=T, sep=",",row.names=1)
+otu=t(otu)
+otu=data.matrix(otu)
+Shannon <- diversity(otu,index="shannon")
+Richness <- specnumber(otu)
+Eveness<- Shannon/log(Richness)
+x=data.frame(Shannon,Richness)
+write.csv(x,"output.csv")
+rep_set <- read.tree('subsample_otu.repseq.fasta.tre')
+pd(otu, rep_set,include.root=FALSE)
+###Fig.2ab###
+##sum of phylum
+data=read.table("clipboard",row.names = 1,header=T,sep='\t')
+sum_phylum=aggregate( .~ phylum, data = data, sum)
+sum_phylum=sum_phylum[,1:13]
+write.csv(sum_phylum,"sum_phylum.csv")
+##relative abundance
+data=read.table("clipboard",header=T,sep='\t')
+data= melt(data, id=1)
+data$phylum_o= factor(data$phylum, levels = c('Others','Verrucomicrobia','Cyanobacteria','Planctomycetes','Bacteroidetes','Actinobacteria','Firmicutes','Acidobacteria','Chloroflexi', 'Proteobacteria'))
+phylum_colors <- c("#808080","#2F528F","#9A0000","#BA74B7","#8E7900","#E1B1CC","#E4932D","#7F83D0", "#4DB14C","#A09FDB","#BD38A3","#A5ADB8","#BD38A3")
+p<-ggplot(data,aes(variable_o,value,fill=phylum_o))+
+  geom_bar(width = 0.8,stat="identity")+
+  scale_fill_manual(values = phylum_colors)+
+  theme_bw()+ylab("Relative ahundance(%)")+
+  theme(axis.text.x = element_text(size=13,angle = 30, hjust= 1, vjust = 1),axis.text.y = element_text(size=13))+
+  theme(axis.title.y = element_text(size = 15))
+graph2ppt(file="figs by xiao.pptx", width=4, height=3,append =TRUE)
+
+data=read.table("clipboard",header=T,sep='\t')
+data= melt(data, id=1)
+data$variable_o= factor(data$variable, levels = c('Control','R.palustris','B.subtilis', 'Mix'))
+data$phylum_o= factor(data$phylum, levels = c('Firmicutes','Chlorobi','Chloroflexi', 'Proteobacteria'))
+
+phylum_colors <- c( "#A5ADB8","#BD38A3","#4DB14C","#A09FDB")
+p<-ggplot(data,aes(variable_o,value,fill=phylum_o))+
+  geom_bar(width = 0.8,stat="identity")+
+  scale_fill_manual(values = phylum_colors)+
+  theme_bw()+ylab("Relative ahundance(%)")+
+  theme(axis.text.x = element_text(size=13,angle = 30, hjust= 1, vjust = 1),axis.text.y = element_text(size=13))+
+  theme(axis.title.y = element_text(size = 15))
+p
+graph2ppt(file="figs by xiao.pptx", width=4, height=3,append =TRUE)
+
+###Fig.2cd###
+library(vegan)
+library(MASS)
+speciesdata=read.csv("abun-otu.csv", header=T, sep=",",row.names = 1) 
+speciesdata_new=t(speciesdata)
+vare.nmds<-metaMDS(speciesdata_new)
+vare.nmds
+summary(vare.nmds)
+plot(vare.nmds,display = "sites")
+plot(vare.nmds, display = "sites",type = "t")
+data.scores <- as.data.frame(scores(vare.nmds))
+data.scores 
+data=read.table("clipboard",header=T,sep='\t')
+data$Group1_o= factor(data$Group1, levels = c('Control','R.palustris','B.subtilis','Mix'))
+ggplot(data, aes(x=NMDS1, y=NMDS2, color=Group1_o)) +
+  geom_point(size=4.5)+theme_bw()+
+  theme(panel.grid.major = element_blank (), panel.grid.minor = element_blank (), axis.line = element_line (colour = "black"))+
+  theme(axis.text.x = element_text(size = 15),axis.text.y = element_text(size = 15))+
+  theme(axis.title.x = element_text(size =15),axis.title.y = element_text(size = 15))+
+  theme(legend.text=element_text(size=11))+
+  scale_shape_manual(values=c(1, 16))+
+  scale_color_manual(values=c('#440154','#3B528B','#5DC863','#FDE725'))
+p
+graph2ppt(file="figs by xiao.pptx", width=4.5, height=3, append=TRUE)
+
+###Fig.2e###
+otu=read.table("clipboard",header=T,sep='\t',row.names = 1)
+otu=t(otu)#行是样品‘列是OTU
+dist1<-vegdist(otu,method="bray")
+dist1=as.matrix(dist1)
+write.csv(dist1,"abudant-dist.csv")
+##plot
+data=read.table("clipboard",header=T,sep='\t')
+data$variable_o = factor(data$variable, levels=c('Rare','Abundant'))
+data$Treatment_o = factor(data$Treatment, levels=c('R.palustris','B.subtilis','Mix'))
+ggplot(data, aes(x = Treatment_o, y = value, color = variable_o,fill = variable_o)) +
+  geom_boxplot(alpha=0.3,lwd=0.5,position=position_dodge(0.9)) +
+  scale_y_continuous(name = "Community dissimilarity") +
+  scale_color_manual(values=c("#5CBE9F","#8397C6"))+
+  scale_fill_manual(values=c("#5CBE9F","#8397C6"))+
+  theme_bw() +
+  theme(legend.title=element_blank())+
+  theme(axis.text.x = element_text(size = 12,),axis.text.y = element_text(size = 10),legend.text = element_text(size = 12))+
+  theme(axis.title.x = element_text(size =12),axis.title.y = element_text(size = 12))+
+  theme(strip.text.x = element_text(size = 12))+
+  xlab("")
+graph2ppt(file="new2.pptx", width=4.5, height=3.5,append=TRUE)
+
+#####Fig.3ab###
+data$title <- "Rare"
+data=read.table("clipboard",header=T,sep='\t')
+p1=ggplot(data, aes(x=X1,y=Y))+
+  geom_point(aes(),alpha=I(0.5),size=4) + 
+  theme_bw()+ 
+  xlab("Relative abundance (%)")+ylab("Yield (t/ha)")+
+  theme(axis.text.x = element_text(size = 15),axis.text.y = element_text(size = 15))+
+  theme(axis.title.x = element_text(size = 20),axis.title.y = element_text(size = 20),strip.text = element_text(size = 20))+
+  theme(legend.title=element_blank())
+p2=ggplot(data, aes(x=X2,y=Y))+
+  geom_point(aes(),alpha=I(0.5),size=4) + 
+  theme_bw()+ 
+  geom_smooth(method=lm)+
+  xlab("Relative abundance (%)")+ylab("Yield (t/ha)")+
+  theme(axis.text.x = element_text(size = 15),axis.text.y = element_text(size = 15))+
+  theme(axis.title.x = element_text(size = 20),axis.title.y = element_text(size = 20),strip.text = element_text(size = 20))+
+  theme(legend.title=element_blank())
+grid.arrange(p1, p2,ncol=2)
+graph2ppt(file="figs by xiao.pptx", width=8, height=4, append=TRUE)
+
+###Fig.3cd###
+data=read.table("clipboard",row.names = 1,header=T,sep='\t')
+sum_phylum=aggregate( .~ phylum, data = data, sum)
+sum_phylum=sum_phylum[,1:13]
+write.csv(sum_phylum,"sum_phylum.csv")
+##Random forests
+data=read.table("clipboard",header=T,sep='\t')
+iris.rf <- randomForest(Yield ~ ., data= data, importance=TRUE,proximity=TRUE)
+iris.rf
+round(importance(iris.rf), 2)
+#plot RF
+data=read.table("clipboard",header=T,sep='\t')
+p1=ggplot(data,aes(x=reorder(X, Y),y=Y))+
+  geom_bar(stat="identity",width =0.7 )+
+  coord_flip()+
+  theme_bw()+
+  theme(axis.text.x = element_text(size=11),axis.text.y = element_text(size=11))+
+  theme(axis.title.y = element_text(size = 15))+
+  theme(plot.title = element_text(size = 15))+
+  xlab("")+ylab("Increase in MSE (%)")+
+  ggtitle("At class level")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_y_continuous(limits = c(0,6))+
+  annotate(geom="text", x=1.5, y=6, size=5,label="% Var explained: 61.37")
+p1
+
+data=read.table("clipboard",header=T,sep='\t')
+p2=ggplot(data,aes(x=reorder(X, Y),y=Y))+
+  geom_bar(stat="identity",width =0.7 )+
+  coord_flip()+
+  theme_bw()+
+  theme(axis.text.x = element_text(size=11),axis.text.y = element_text(size=11))+
+  theme(axis.title.y = element_text(size = 15))+
+  theme(plot.title = element_text(size = 15))+
+  xlab("")+ylab("Increase in MSE (%)")+
+  ggtitle("At phylum level")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_y_continuous(limits = c(0,6))+
+  annotate(geom="text", x=1.5, y=6, size=5,label="% Var explained: 63.09")
+p2
+grid.arrange(p2, p1,ncol=2)
+graph2ppt(file="figs by xiao.pptx", width=9, height=5, append=TRUE)
+
+###Fig.4b###
+data=read.table("clipboard",header=T,sep='\t')
+data$X_o = factor(data$X, levels=c('pH','SOM','Abundant','Rare'))
+p1=ggplot(data,aes(x=X_o,y=Y))+
+  geom_bar(stat="identity",width =0.7 )+
+  theme_bw()+
+  theme(axis.text.x = element_text(size=15,angle = 35, hjust= 1, vjust = 1),axis.text.y = element_text(size=15))+
+  theme(axis.title.y = element_text(size = 15))+
+  xlab("")+ylab("Standardized total effects \n from SEM (unitless)")
+graph2ppt(file="figs by xiao.pptx", width=4, height=3.5, append=TRUE)
+#PerMANOVA
+data=read.table("clipboard",header=T,sep='\t')
+data=t(data)
+betad<-vegdist(data,method="bray")
+env=read.table("clipboard",header=T,sep='\t')
+adonis(betad ~ Treatment, env, perm = 200)
+
+###Fig.5a###
+###RR plot
+data1=read.table("clipboard",header=T,sep='\t')
+data1$Category <- factor(data1$Category, levels =data1$Category)
+p1=ggplot(data1, aes(y= data1$Difference.between.means, x = data1$Category)) +
+  geom_point(size=2) +
+  geom_errorbar(aes(ymin=data1$X95.0..lower.CI, ymax=data1$X95.0..upper.CI), width=.2) +
+  geom_hline(yintercept = 0, linetype=2) +
+  coord_flip() +
+  xlab("")+ylab("Difference in mean proportion (%)")+
+  theme(axis.text.x = element_text(size=12),axis.text.y = element_text(size=12))+
+  theme_classic()
+
+data2=read.table("clipboard",header=T,sep='\t')
+data2$Category <- factor(data2$Category, levels =data2$Category)
+p2=ggplot(data2, aes(y= data2$Difference.between.means, x = data2$Category)) +
+  geom_point(size=2) +
+  geom_errorbar(aes(ymin=data2$X95.0..lower.CI, ymax=data2$X95.0..upper.CI), width=.2) +
+  geom_hline(yintercept = 0, linetype=2) +
+  coord_flip() +
+  xlab("")+ylab("Difference in mean proportion (%)")+
+  theme(axis.text.x = element_text(size=12),axis.text.y = element_text(size=12))+
+  theme_classic()
+
+data3=read.table("clipboard",header=T,sep='\t')
+data3$Category <- factor(data3$Category, levels =data3$Category)
+p3=ggplot(data3, aes(y= data3$Difference.between.means, x = data3$Category)) +
+  geom_point(size=2) +
+  geom_errorbar(aes(ymin=data3$X95.0..lower.CI, ymax=data3$X95.0..upper.CI), width=.2) +
+  geom_hline(yintercept = 0, linetype=2) +
+  coord_flip() +
+  xlab("")+ylab("Difference in mean proportion (%)")+
+  theme(axis.text.x = element_text(size=12),axis.text.y = element_text(size=12))+
+  theme_classic()
+multiplot(p1, p2,p3,layout = matrix(c(1,1,2,3,3,3,3,3), nrow = 8)) 
+graph2ppt(file="new2.pptx", width=7, height=10,append=TRUE)
+
+###Fig.5b###
+library(Hmisc)
+data=read.table("clipboard",header=T,sep='\t')
+data1=as.matrix((data))
+b<-rcorr(data1,type="pearson")
+write.csv(b$r,"R value.emission.csv")
+write.csv(b$P,"p.csv")
+r=read.table("clipboard",header=T,row.names = 1,sep='\t')
+p.mat=read.table("clipboard",header=T,row.names = 1,sep='\t')
+col <- colorRampPalette(c("#4477AA","#77AADD","#FFFFFF","#EE9988","#BB4444"))
+r=as.matrix(r)
+p.mat=as.matrix(p.mat)
+corrplot(r, method="circle",p.mat = p.mat, sig.level = 0.05, insig = "blank")
+graph2ppt(file="cor3.pptx", width=16, height=8,append =TRUE)
+
+###Fig.S2###
+data=read.table("clipboard",header=T,sep='\t')
+newdata=melt(data, id=c("ID","Group1"))
+newdata$Group1_o= factor(data$Group1, levels = c('Control','R.palustris','B.subtilis','Mix'))
+ggplot(data=newdata,aes(x=Group1_o,y=value))+
+  stat_summary(aes(fill =newdata$Group1_o),fun.y=mean,geom="bar",fun.args = list(mult=1),
+               width=0.8,position=position_dodge(0.9))+
+  scale_fill_viridis(discrete = TRUE, option = "D")+
+  stat_summary(fun.data = mean_sdl,fun.args = list(mult=1),
+               geom="errorbar",width=0.2,position=position_dodge(0.9))+
+  facet_wrap(.~variable,scales = "free")+
+  theme_minimal()+ 
+  xlab("")+
+  ylab("")+
+  theme(axis.text.x=element_blank(),axis.text.y = element_text(size = 13),strip.text = element_text(size = 13))+
+  theme(axis.title.x = element_text(size = 15),axis.title.y = element_text(size = 15))+
+  theme(legend.position="right")
+graph2ppt(file="figs by xiao.pptx", width=10, height=3, append=TRUE)
+
+###Fig.S6###
+data=read.table("clipboard",header=T,sep='\t')
+ggplot(data, aes(x =A..Proteobacteria,y=Yield)) + 
+  geom_point(size=5,alpha=0.6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(size=15),axis.text.y = element_text(size=15))+
+  theme(axis.title.x = element_text(size = 18),axis.title.y = element_text(size =18))+
+  xlab("Relative abundance (%)")+ylab("Yield (t/ha)")+
+  geom_smooth(method = lm, formula = y ~ x)
+graph2ppt(file="figs by xiao.pptx", width=4.5, height=4,append =TRUE)
+
+data=read.table("clipboard",header=T,sep='\t')
+data$Treatment_o = factor(data$Treatment, levels=c('Control','R.palustris','B.subtilis', 'Mix'))
+p1=ggplot(data,aes(x=Treatment_o,y=Mean))+
+  geom_bar(stat="identity",width =0.7,fill= "DimGray" )+
+  geom_errorbar(aes(ymin=Mean-Errorbar, ymax=Mean+Errorbar), width=.2,
+                position=position_dodge(.9))+
+  theme_bw()+
+  theme(axis.text.x = element_text(size=13,angle = 30, hjust= 1, vjust = 1),axis.text.y = element_text(size=13))+
+  theme(axis.title.y = element_text(size = 15))+
+  theme(plot.title = element_text(size = 16))+
+  xlab("")+ylab("Yield ()")+
+  scale_y_continuous(limits = c(0,9))
+p1
+graph2ppt(file="figs by xiao.pptx", width=2.5, height=3,append =TRUE)
+
+
+
+
+
